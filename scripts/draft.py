@@ -31,20 +31,28 @@ def fmt_volume(qv):
     return f"{qv/1e4:.1f}万U"
 
 
+def bias_label(pct):
+    """根据24h涨跌幅正负,翻译成"短期偏多/偏空",纯粹是数据翻译,不是行情预测。"""
+    if pct is None:
+        return "方向不明"
+    return "短期偏多 📈" if pct >= 0 else "短期偏空 📉"
+
+
 def build_text(coin: dict) -> str:
     symbol = coin["symbol"]
     now = datetime.now(CN_TZ).strftime("%m-%d %H:%M")
     change = fmt_change(coin.get("change_pct"))
     volume = fmt_volume(coin.get("quote_volume"))
+    bias = bias_label(coin.get("change_pct"))
     futures_link = f"https://www.binance.com/zh-CN/futures/{symbol}USDT"
 
     lines = [
-        f"${symbol} 热度观察 ({now})",
+        f"🔥 ${symbol} 全市场热度榜 #1 ({now})",
         "",
-        f"24h涨跌: {change}   24h成交额: {volume}",
-        f"热度综合分: {coin['hot_score']}",
+        f"24h振幅 {change} ,成交额冲到 {volume}",
+        f"{bias} ｜ 热度分 {coin['hot_score']}/100",
         "",
-        f"行情详情: {futures_link}",
+        f"行情详情 👉 {futures_link}",
         "",
         TOPIC_TAGS,
     ]
