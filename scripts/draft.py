@@ -34,14 +34,13 @@ def trend_word(pct):
 
 def bias_label(pct):
     """
-    红涨绿跌配色(国内习惯,跟国际/币圈默认的"绿涨红跌"相反):
-    看多 = 红色上涨图标, 看空 = 绿色下跌图标
+    红涨绿跌配色(国内习惯,跟国际/币圈默认的"绿涨红跌"相反)
     """
     if pct is None:
         return "方向不明", ""
     if pct >= 0:
-        return "看多", "🔴⬆️"
-    return "看空", "🟢⬇️"
+        return "看多", "📈"
+    return "看空", "📉"
 
 
 def build_text(coin: dict) -> str:
@@ -53,7 +52,7 @@ def build_text(coin: dict) -> str:
 
     lines = [
         f"${symbol} 全市场热度榜 #1",
-        f"24h{trend_word(pct)} {change} ,成交额冲到 {volume}",
+        f"24h{trend_word(pct)} {change} ,成交额 {volume}",
         f"{bias_text} {bias_emoji} ｜ 热度分 {coin['hot_score']}/100",
     ]
     return "\n".join(lines)
