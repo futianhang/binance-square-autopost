@@ -7,7 +7,8 @@
   3. 24h量价 (涨跌幅 + 成交额)              -- 连续值,百分位打分
 
 综合分: 0.4*社交热度 + 0.3*趋势榜 + 0.3*量价信号
-过滤: 24h成交额 < MIN_QUOTE_VOLUME 直接剔除; 至少命中2/3个信号才入选
+过滤: 24h成交额 < MIN_QUOTE_VOLUME 直接剔除
+降级机制: 如果社交热度榜+趋势榜都拿不到数据,自动降级成只用量价信号打分
 
 用法:
   python3 hot_coins.py [--top N] [--out hot_coins.json]
@@ -15,7 +16,6 @@
 import argparse
 import json
 import sys
-from statistics import NormalDist
 
 import requests
 
@@ -125,12 +125,20 @@ def build_hot_list(top_n: int = 10) -> list[dict]:
     trend = fetch_trending()
     pv = fetch_price_volume_signal()
 
+    print(f"[诊断] 社交热度榜命中 {len(hype)} 个币种,趋势榜命中 {len(trend)} 个币种,"
+          f"24h量价命中 {len(pv)} 个币种(过滤成交额<{MIN_QUOTE_VOLUME}后)", file=sys.stderr)
+
+    degraded = (len(hype) == 0 and len(trend) == 0)
+    min_hits = 1 if degraded else 2
+    if degraded:
+        print("[诊断] 社交热度榜+趋势榜均为空,降级为纯量价信号打分", file=sys.stderr)
+
     all_symbols = set(hype) | set(trend) | set(pv)
     candidates = []
     for sym in all_symbols:
         hits = sum([sym in hype, sym in trend, sym in pv])
-        if hits < 2:
-            continue  # 至少命中2/3信号
+        if hits < min_hits:
+            continue
         hype_s = hype.get(sym, 0.0)
         trend_s = trend.get(sym, 0.0)
         pv_s = pv.get(sym, {}).get("score", 0.0)
@@ -159,7 +167,7 @@ def main():
     hot_list = build_hot_list(top_n=args.top)
 
     if not hot_list:
-        print("[警告] 没有任何币种同时命中至少2个信号,可能是web3热度接口暂时不可用,降级用纯量价信号", file=sys.stderr)
+        print("[警告] 量价信号也没有结果,可能是api.binance.com被限流/不可达", file=sys.stderr)
 
     output = json.dumps(hot_list, ensure_ascii=False, indent=2)
     if args.out:
