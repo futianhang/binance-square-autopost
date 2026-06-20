@@ -12,7 +12,7 @@ import mplfinance as mpf
 import pandas as pd
 import requests
 
-KLINES_URL = "https://api.binance.com/api/v3/klines"
+KLINES_URL = "https://data-api.binance.vision/api/v3/klines"
 TIMEOUT = 10
 
 
