@@ -23,9 +23,11 @@ SQUARE_POST_DIR = os.path.join(PROJECT_ROOT, "vendor", "square-post", "scripts")
 
 def run(cmd: list[str]) -> str:
     result = subprocess.run(cmd, capture_output=True, text=True)
+    # 子进程的stderr(诊断信息/警告)无论成功失败都打出来,不要吞掉
+    if result.stderr:
+        print(result.stderr, file=sys.stderr, end="" if result.stderr.endswith("\n") else "\n")
     if result.returncode != 0:
         print(f"[错误] 命令失败: {' '.join(cmd)}", file=sys.stderr)
-        print(result.stderr, file=sys.stderr)
         sys.exit(1)
     return result.stdout
 
