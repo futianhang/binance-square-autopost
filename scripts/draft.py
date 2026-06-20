@@ -42,7 +42,7 @@ def build_text(coin: dict) -> str:
         f"${symbol} 热度观察 ({now})",
         "",
         f"24h涨跌: {change}   24h成交额: {volume}",
-        f"热度综合分: {coin['hot_score']}  (命中{coin['signals_hit']}/3个热度信号)",
+        f"热度综合分: {coin['hot_score']}",
         "",
         f"行情详情: {futures_link}",
         "",
