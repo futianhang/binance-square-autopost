@@ -38,7 +38,6 @@ def fetch_klines(symbol: str, interval: str, limit: int) -> pd.DataFrame:
 def draw_chart(symbol: str, interval: str, bars: int, out_path: str):
     df = fetch_klines(symbol, interval, bars)
 
-    # 红涨绿跌配色(国内习惯,跟binancedark默认的绿涨红跌相反)
     mc = mpf.make_marketcolors(
         up="#F6465D", down="#0ECB81",
         edge="inherit", wick="inherit", volume="inherit",
@@ -46,17 +45,30 @@ def draw_chart(symbol: str, interval: str, bars: int, out_path: str):
     style = mpf.make_mpf_style(
         base_mpf_style="binancedark",
         marketcolors=mc,
-        gridstyle="",  # 去掉网格线
+        gridstyle="",
     )
 
-    mpf.plot(
+    fig, axlist = mpf.plot(
         df,
         type="candle",
         style=style,
         volume=True,
         title=f"\n{symbol.upper()}/USDT  {interval}",
-        savefig=dict(fname=out_path, dpi=150, bbox_inches="tight", facecolor="#0B0E11"),
+        returnfig=True,
     )
+
+    n = len(df)
+    bottom_ax = next(ax for ax in axlist if ax.xaxis.get_visible() and len(ax.get_xticklabels()) > 0)
+    bottom_ax.set_xticks([0, n - 1])
+    bottom_ax.set_xticklabels(
+        [df.index[0].strftime("%Y-%m-%d %H:%M"), df.index[-1].strftime("%Y-%m-%d %H:%M")],
+        rotation=0,
+    )
+    bottom_ax.get_xticklabels()[0].set_ha("left")
+    bottom_ax.get_xticklabels()[-1].set_ha("right")
+    bottom_ax.tick_params(axis="x", rotation=0)
+
+    fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor="#0B0E11")
 
 
 def main():
