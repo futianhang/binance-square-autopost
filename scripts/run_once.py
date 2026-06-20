@@ -36,7 +36,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--rank", type=int, default=0, help="取热度榜第几名,0=第1名")
     ap.add_argument("--top", type=int, default=10, help="抓取热度榜前N名")
-    ap.add_argument("--interval", default="4h", help="K线周期")
+    ap.add_argument("--interval", default="1h", help="K线周期")
     ap.add_argument("--bars", type=int, default=48, help="K线根数")
     ap.add_argument("--dry-run", action="store_true", help="只生成文案和图片,不真实发帖")
     ap.add_argument("--workdir", default=os.path.join(PROJECT_ROOT, "data", "tmp"))
