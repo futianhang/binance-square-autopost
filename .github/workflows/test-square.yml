@@ -1,0 +1,14 @@
+name: test-square-connectivity
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 测试发一条最简单的文本(用来验证连通性,不是地域限制问题就会真实发出去)
+        env:
+          BINANCE_SQUARE_OPENAPI_KEY: ${{ secrets.BINANCE_SQUARE_OPENAPI_KEY }}
+        run: node vendor/square-post/scripts/post-text.mjs --text "connectivity test - 请忽略"
