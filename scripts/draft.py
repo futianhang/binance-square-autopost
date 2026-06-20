@@ -4,16 +4,10 @@
 
 用法:
   python3 draft.py hot_coins.json --rank 0 --out draft.txt
-  (--rank 0 表示取热度榜第1名)
 """
 import argparse
 import json
 import sys
-from datetime import datetime, timezone, timedelta
-
-CN_TZ = timezone(timedelta(hours=8))
-
-TOPIC_TAGS = "#市场热点 #加密货币"
 
 
 def fmt_change(pct):
@@ -31,30 +25,36 @@ def fmt_volume(qv):
     return f"{qv/1e4:.1f}万U"
 
 
-def bias_label(pct):
-    """根据24h涨跌幅正负,翻译成"短期偏多/偏空",纯粹是数据翻译,不是行情预测。"""
+def trend_word(pct):
+    """根据涨跌幅正负,返回"涨幅"或"跌幅" """
     if pct is None:
-        return "方向不明"
-    return "短期偏多 📈" if pct >= 0 else "短期偏空 📉"
+        return "振幅"
+    return "涨幅" if pct >= 0 else "跌幅"
+
+
+def bias_label(pct):
+    """
+    红涨绿跌配色(国内习惯,跟国际/币圈默认的"绿涨红跌"相反):
+    看多 = 红色上涨图标, 看空 = 绿色下跌图标
+    """
+    if pct is None:
+        return "方向不明", ""
+    if pct >= 0:
+        return "看多", "🔴⬆️"
+    return "看空", "🟢⬇️"
 
 
 def build_text(coin: dict) -> str:
     symbol = coin["symbol"]
-    now = datetime.now(CN_TZ).strftime("%m-%d %H:%M")
-    change = fmt_change(coin.get("change_pct"))
+    pct = coin.get("change_pct")
+    change = fmt_change(pct)
     volume = fmt_volume(coin.get("quote_volume"))
-    bias = bias_label(coin.get("change_pct"))
-    futures_link = f"https://www.binance.com/zh-CN/futures/{symbol}USDT"
+    bias_text, bias_emoji = bias_label(pct)
 
     lines = [
-        f"🔥 ${symbol} 全市场热度榜 #1 ({now})",
-        "",
-        f"24h振幅 {change} ,成交额冲到 {volume}",
-        f"{bias} ｜ 热度分 {coin['hot_score']}/100",
-        "",
-        f"行情详情 👉 {futures_link}",
-        "",
-        TOPIC_TAGS,
+        f"${symbol} 全市场热度榜 #1",
+        f"24h{trend_word(pct)} {change} ,成交额冲到 {volume}",
+        f"{bias_text} {bias_emoji} ｜ 热度分 {coin['hot_score']}/100",
     ]
     return "\n".join(lines)
 
