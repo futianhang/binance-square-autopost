@@ -8,7 +8,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: 测试发一条最简单的文本(用来验证连通性,不是地域限制问题就会真实发出去)
-        env:
-          BINANCE_SQUARE_OPENAPI_KEY: ${{ secrets.BINANCE_SQUARE_OPENAPI_KEY }}
-        run: node vendor/square-post/scripts/post-text.mjs --text "connectivity test - 请忽略"
+
+      - name: 测试社交热度榜接口连通性
+        run: |
+          curl -s -o /dev/null -w "HTTP状态码: %{http_code}\n" \
+            "https://web3.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/market/token/pulse/social/hype/rank/leaderboard/ai?chainId=56&sentiment=All&socialLanguage=ALL"
+
+      - name: 测试趋势榜接口连通性
+        run: |
+          curl -s -o /dev/null -w "HTTP状态码: %{http_code}\n" \
+            -X POST -H "Content-Type: application/json" \
+            -d '{"chainId":"56","rankType":10,"limit":20}' \
+            "https://web3.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/market/token/pulse/rank/list/ai"
+
+      - name: 测试api.binance.com (对照组,预期451)
+        run: |
+          curl -s -o /dev/null -w "HTTP状态码: %{http_code}\n" \
+            "https://api.binance.com/api/v3/ticker/24hr"
