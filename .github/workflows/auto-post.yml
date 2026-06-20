@@ -3,9 +3,13 @@ name: square-auto-post
 on:
   schedule:
     # 每15分钟一次, 24h约96次, 留出余量在100次/天的限额内
-    # 注意: GitHub的schedule在高峰期可能延迟几分钟到十几分钟,不保证精确触发
     - cron: '*/15 * * * *'
-  workflow_dispatch: {}   # 允许手动在Actions页面点一下立即跑一次,方便测试
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '测试模式(不会真实发帖,只生成文案和图片)'
+        type: boolean
+        default: true
 
 jobs:
   post:
@@ -20,9 +24,20 @@ jobs:
       - name: 安装Python依赖
         run: pip install -r requirements.txt
 
-      - name: 发帖(真实环境,非dry-run)
+      - name: 运行(定时任务时永远是真实发帖,手动触发时按勾选项决定)
         env:
           BINANCE_SQUARE_OPENAPI_KEY: ${{ secrets.BINANCE_SQUARE_OPENAPI_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}
-        run: python3 scripts/run_once.py --rank 0
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            python3 scripts/run_once.py --dry-run
+          else
+            python3 scripts/run_once.py --rank 0
+          fi
+
+      - name: 上传本次生成的文案和图片(方便下载查看,7天后自动删除)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-preview-${{ github.run_id }}
+          path: data/tmp/
+          retention-days: 7
