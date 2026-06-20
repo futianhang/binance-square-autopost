@@ -40,10 +40,10 @@ def draw_chart(symbol: str, interval: str, bars: int, out_path: str):
     mpf.plot(
         df,
         type="candle",
-        style="binance",
+        style="binancedark",
         volume=True,
         title=f"\n{symbol.upper()}/USDT  {interval}",
-        savefig=dict(fname=out_path, dpi=150, bbox_inches="tight"),
+        savefig=dict(fname=out_path, dpi=150, bbox_inches="tight", facecolor="#0B0E11"),
     )
 
 
