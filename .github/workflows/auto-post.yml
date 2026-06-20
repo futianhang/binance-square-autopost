@@ -3,7 +3,7 @@ name: square-auto-post
 on:
   schedule:
     # 每15分钟一次, 24h约96次, 留出余量在100次/天的限额内
-    - cron: '*/15 * * * *'
+    - cron: '7,22,37,52 * * * *'  
   workflow_dispatch:
     inputs:
       dry_run:
