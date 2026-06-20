@@ -37,10 +37,22 @@ def fetch_klines(symbol: str, interval: str, limit: int) -> pd.DataFrame:
 
 def draw_chart(symbol: str, interval: str, bars: int, out_path: str):
     df = fetch_klines(symbol, interval, bars)
+
+    # 红涨绿跌配色(国内习惯,跟binancedark默认的绿涨红跌相反)
+    mc = mpf.make_marketcolors(
+        up="#F6465D", down="#0ECB81",
+        edge="inherit", wick="inherit", volume="inherit",
+    )
+    style = mpf.make_mpf_style(
+        base_mpf_style="binancedark",
+        marketcolors=mc,
+        gridstyle="",  # 去掉网格线
+    )
+
     mpf.plot(
         df,
         type="candle",
-        style="binancedark",
+        style=style,
         volume=True,
         title=f"\n{symbol.upper()}/USDT  {interval}",
         savefig=dict(fname=out_path, dpi=150, bbox_inches="tight", facecolor="#0B0E11"),
@@ -50,7 +62,7 @@ def draw_chart(symbol: str, interval: str, bars: int, out_path: str):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("symbol", help="如 BTC, ETH (不带USDT后缀)")
-    ap.add_argument("--interval", default="4h", help="1m/5m/15m/1h/4h/1d 等,与Binance klines接口一致")
+    ap.add_argument("--interval", default="1h", help="1m/5m/15m/1h/4h/1d 等,与Binance klines接口一致")
     ap.add_argument("--bars", type=int, default=48)
     ap.add_argument("--out", default="chart.png")
     args = ap.parse_args()
