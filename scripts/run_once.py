@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-整合编排:抓取行情(BTC/ETH固定 + 市场热点) -> 生成纯文本文案 -> (可选)发布到Square
+整合编排:抓取行情(涨跌幅绝对值前5名) -> 生成纯文本文案 -> (可选)发布到Square
 
 用法:
   # 测试模式: 只生成文案到本地,不真实发帖
@@ -33,7 +33,7 @@ def run(cmd: list[str]) -> str:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--top", type=int, default=3, help="市场热点取前N名(按24h涨跌幅绝对值排序)")
+    ap.add_argument("--top", type=int, default=5, help="市场热点取前N名(按24h涨跌幅绝对值排序)")
     ap.add_argument("--dry-run", action="store_true", help="只生成文案,不真实发帖")
     ap.add_argument("--workdir", default=os.path.join(PROJECT_ROOT, "data", "tmp"))
     args = ap.parse_args()
@@ -43,7 +43,7 @@ def main():
     market_json_path = os.path.join(args.workdir, f"market_{stamp}.json")
     draft_path = os.path.join(args.workdir, f"draft_{stamp}.txt")
 
-    print("== Step A: 抓取行情数据(BTC/ETH + 市场热点) ==")
+    print("== Step A: 抓取行情数据(涨跌幅绝对值前5名) ==")
     run([sys.executable, os.path.join(SCRIPT_DIR, "market_data.py"),
          "--top", str(args.top), "--out", market_json_path])
 
