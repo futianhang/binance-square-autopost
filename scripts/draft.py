@@ -46,7 +46,7 @@ def trend_line(coin: dict, use_cashtag: bool) -> str:
     arrow = "📈" if pct >= 0 else "📉"
     mood = "🔥" if pct >= 0 else "🧊"
     label = "看涨" if pct >= 0 else "看跌"
-    return f"{prefix}{coin['symbol']} {arrow}{fmt_change(pct)} {mood} {label} 💰{fmt_price(coin['last_price'])}"
+    return f"{prefix}{coin['symbol']} {arrow}{fmt_change(pct)} {mood}{label} 💰{fmt_price(coin['last_price'])}"
 
 
 def build_text(data: dict) -> str:
