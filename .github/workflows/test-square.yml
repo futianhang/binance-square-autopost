@@ -9,25 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 测试1 - web3社交热度榜
+      - name: 测试 - data-api.binance.vision 24hr ticker(market_data.py 实际使用的数据源)
         run: |
           curl -s -w "\nHTTP状态码: %{http_code}\n" \
-            "https://web3.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/market/token/pulse/social/hype/rank/leaderboard/ai?chainId=56&sentiment=All&socialLanguage=ALL"
-
-      - name: 测试2 - web3趋势榜
-        run: |
-          curl -s -w "\nHTTP状态码: %{http_code}\n" \
-            -X POST -H "Content-Type: application/json" \
-            -d '{"chainId":"56","rankType":10,"limit":20}' \
-            "https://web3.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/market/token/pulse/rank/list/ai" \
-            | head -c 2000
-
-      - name: 测试3 - api.binance.com 24hr ticker(只测BTC一个,减少输出量)
-        run: |
-          curl -s -w "\nHTTP状态码: %{http_code}\n" \
-            "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
-
-      - name: 测试4 - api.binance.com klines(K线图数据源)
-        run: |
-          curl -s -w "\nHTTP状态码: %{http_code}\n" \
-            "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=5"
+            "https://data-api.binance.vision/api/v3/ticker/24hr?symbol=BTCUSDT"

@@ -2,12 +2,12 @@ name: square-auto-post
 
 on:
   schedule:
-    # 每15分钟一次, 24h约96次, 留出余量在100次/天的限额内
-    - cron: '7,22,37,52 * * * *'  
+    # 标准每15分钟一次(0/15/30/45分), 24h共96次, 在100次/天的限额内
+    - cron: '*/15 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:
-        description: '测试模式(不会真实发帖,只生成文案和图片)'
+        description: '测试模式(不会真实发帖,只生成文案)'
         type: boolean
         default: true
 
@@ -31,10 +31,10 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
             python3 scripts/run_once.py --dry-run
           else
-            python3 scripts/run_once.py --rank 0
+            python3 scripts/run_once.py
           fi
 
-      - name: 上传本次生成的文案和图片(方便下载查看,7天后自动删除)
+      - name: 上传本次生成的文案(方便下载查看,7天后自动删除)
         if: always()
         uses: actions/upload-artifact@v4
         with:
