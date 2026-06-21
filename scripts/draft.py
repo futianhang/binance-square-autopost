@@ -57,10 +57,17 @@ def sentiment(pct: float) -> str:
     return "🥶 恐慌下跌"
 
 
-def coin_block(coin: dict) -> str:
+# 广场每帖最多只认3个 $cashtag,超过会被API拒绝(220095 Coin pair count exceeds the allowed limit)。
+# BTC/ETH固定推送但不占用cashtag名额,"市场热点"最多前3个占满cashtag上限,
+# 万一movers数量配置超过3,从第4个开始自动降级成纯文本,不会因为超额导致整条发帖失败。
+MAX_CASHTAGS = 3
+
+
+def coin_block(coin: dict, use_cashtag: bool) -> str:
     pct = coin["change_pct"]
+    prefix = "$" if use_cashtag else ""
     return "\n".join([
-        f"${coin['symbol']}",
+        f"{prefix}{coin['symbol']}",
         f"💰 最新价：{fmt_price(coin['last_price'])}",
         f"📈 24h涨跌幅：{fmt_change(pct)}",
         f"📊 24h成交额：{fmt_volume(coin['quote_volume'])}",
@@ -73,15 +80,15 @@ def build_text(data: dict) -> str:
     lines = [f"行情快报（{now_bj} 北京时间）", ""]
 
     for coin in data.get("focus", []):
-        lines.append(coin_block(coin))
+        lines.append(coin_block(coin, use_cashtag=False))
         lines.append("")
 
     movers = data.get("movers", [])
     if movers:
         lines.append("🔥 市场热点：")
         lines.append("")
-        for coin in movers:
-            lines.append(coin_block(coin))
+        for i, coin in enumerate(movers):
+            lines.append(coin_block(coin, use_cashtag=(i < MAX_CASHTAGS)))
             lines.append("")
 
     while lines and lines[-1] == "":
