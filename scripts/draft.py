@@ -2,15 +2,12 @@
 """
 根据行情数据生成发帖文案(纯文本模板拼接,不调用LLM,稳定省token)。
 
-文案格式: 涨跌幅绝对值前5名,每个币种一行,symbol列和价格列用空格补齐对齐:
-  $TNSR  💰$0.0489 📈+66.9% 🔥 强势看涨
-  $STRAX 💰$0.0117 📈+26.2% 🔥 强势看涨
+文案格式: 涨跌幅绝对值前5名,每个币种一行,顺序为 名称/涨跌幅/看涨看跌/价格:
+  $TNSR 📈+66.9% 🔥 看涨 💰$0.0489
+  $STRAX 📈+26.2% 🔥 看涨 💰$0.0117
 
 广场每帖最多只认3个 $cashtag,超过会被API拒绝(220095 Coin pair count exceeds the allowed limit),
 所以前3行带$cashtag,第4、5行降级成纯文本(不带$)。
-
-对齐说明: 发帖内容是纯文本字段(bodyTextOnly),不会像HTML那样合并空格,
-但能否在手机上完全对齐取决于App渲染字体是否等宽,非等宽字体下只是"更整齐"而非"完全对齐"。
 
 用法:
   python3 draft.py market.json --out draft.txt
@@ -43,31 +40,21 @@ def fmt_change(pct: float) -> str:
     return f"{sign}{pct:.1f}%"
 
 
+def trend_line(coin: dict, use_cashtag: bool) -> str:
+    pct = coin["change_pct"]
+    prefix = "$" if use_cashtag else ""
+    arrow = "📈" if pct >= 0 else "📉"
+    mood = "🔥" if pct >= 0 else "🧊"
+    label = "看涨" if pct >= 0 else "看跌"
+    return f"{prefix}{coin['symbol']} {arrow}{fmt_change(pct)} {mood} {label} 💰{fmt_price(coin['last_price'])}"
+
+
 def build_text(data: dict) -> str:
     movers = data.get("movers", [])[:5]
-    if not movers:
-        return ""
-
-    # 第一栏: symbol(带$cashtag的算上$的长度),第二栏: price,都补齐到本帖里最长的那个
-    symbol_cells = [
-        ("$" if i < MAX_CASHTAGS else "") + coin["symbol"]
+    lines = [
+        trend_line(coin, use_cashtag=(i < MAX_CASHTAGS))
         for i, coin in enumerate(movers)
     ]
-    price_cells = [fmt_price(coin["last_price"]) for coin in movers]
-
-    symbol_width = max(len(s) for s in symbol_cells)
-    price_width = max(len(p) for p in price_cells)
-
-    lines = []
-    for symbol_cell, price_cell, coin in zip(symbol_cells, price_cells, movers):
-        pct = coin["change_pct"]
-        arrow = "📈" if pct >= 0 else "📉"
-        mood = "🔥" if pct >= 0 else "🧊"
-        label = "强势看涨" if pct >= 0 else "强势看跌"
-        lines.append(
-            f"{symbol_cell.ljust(symbol_width)} 💰{price_cell.ljust(price_width)} "
-            f"{arrow}{fmt_change(pct)} {mood} {label}"
-        )
     return "\n".join(lines)
 
 
